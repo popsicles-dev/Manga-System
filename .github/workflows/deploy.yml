@@ -1,0 +1,32 @@
+name: Deploy FastAPI App to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Docker login to ACR
+      uses: azure/docker-login@v1
+      with:
+        login-server: mangaregistry.azurecr.io
+        username: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientId }}
+        password: ${{ fromJSON(secrets.AZURE_CREDENTIALS).clientSecret }}
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: mangarecommender
+        images: mangaregistry.azurecr.io/manga-recommender:latest
